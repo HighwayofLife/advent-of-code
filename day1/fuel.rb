@@ -8,7 +8,7 @@ def calculate_fuel(mass)
   return (mass / 3).floor - 2
 end
 
-def total_fuel
+def module_fuel
   fuel = 0
 
   File.open('input.txt').each do |mass|
@@ -18,8 +18,33 @@ def total_fuel
   return fuel
 end
 
+def fuel_mass_fuel(fuel_load)
+  total_fuel = fuel_load
+  fuel_cost = total_fuel
+
+  while fuel_cost > 0
+    fuel_cost = calculate_fuel(fuel_cost)
+    if (fuel_cost < 0)
+      break
+    end
+    total_fuel += fuel_cost
+  end
+
+  return total_fuel
+end
+
+def calculate_total_fuel
+  fuel = 0
+
+  File.open('input.txt').each do |mass|
+    fuel += fuel_mass_fuel(calculate_fuel(mass.chomp.to_i))
+  end
+
+  return fuel
+end
+
 # Ensure that we're adding total fuel cost correctly
-def _test_total_fuel(mass_list)
+def _test_module_fuel(mass_list)
   fuel = 0
 
   mass_list.each do |mass|
@@ -39,9 +64,18 @@ def _test_fuel
   assert_equal 2, calculate_fuel(14)
   assert_equal 654, calculate_fuel(1969)
   assert_equal 33583, calculate_fuel(100756)
-  assert_equal 4, _test_total_fuel([12, 14])
-  assert_equal 658, _test_total_fuel([12, 14, 1969])
+  assert_equal 4, _test_module_fuel([12, 14])
+  assert_equal 658, _test_module_fuel([12, 14, 1969])
+
+  # A module of mass 14 requires 2 fuel. This fuel requires no further fuel (2 divided by 3 and rounded down is 0, which would call for a negative fuel), so the total fuel required is still just 2.
+  assert_equal 2, fuel_mass_fuel(_test_module_fuel([14]))
+  # At first, a module of mass 1969 requires 654 fuel. Then, this fuel requires 216 more fuel (654 / 3 - 2). 216 then requires 70 more fuel, which requires 21 fuel, which requires 5 fuel, which requires no further fuel. So, the total fuel required for a module of mass 1969 is 654 + 216 + 70 + 21 + 5 = 966.
+  assert_equal 966, fuel_mass_fuel(_test_module_fuel([1969]))
+  # The fuel required by a module of mass 100756 and its fuel is: 33583 + 11192 + 3728 + 1240 + 411 + 135 + 43 + 12 + 2 = 50346.
+  assert_equal 50346, fuel_mass_fuel(_test_module_fuel([100756]))
 end
 _test_fuel
 
-puts total_fuel
+puts fuel_mass_fuel(module_fuel)
+puts calculate_total_fuel
+
